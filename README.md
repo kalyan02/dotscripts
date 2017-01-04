@@ -42,6 +42,29 @@ Example Output:
 
 ![link](http://blog.fuss.in/wp/wp-content/uploads/2016/12/img_857_1_5.jpg)
 
+## calgen.py
+
+This script generates a checklist calendar for any month. 
+
+     Usage: calgen.py [options]
+
+     Options:
+       -h, --help            show this help message and exit
+       -s, --sample          generates sample json config
+       -m MONTH, --month=MONTH
+       -y YEAR, --year=YEAR  
+       -t TITLE, --title=TITLE
+       -i INPUT, --input=INPUT
+       -o OUTPUT, --output=OUTPUT
+       
+Generate Sample Config:
+
+     ~$ python calgen.py -s
+     
+Example Usage:
+
+     ~$ calgen.py -i sample.json -t "title" -m 1 -y 2017 -o sample.html
+
 ## requirements
 
 - Python 2.x
@@ -50,6 +73,7 @@ Example Output:
         pip install pillow
       
   Note: `pillow` is the package name. `pil`/`image` packages are depricated.
+  This is only required for combine.py and resize.py
   
 ## License
 
