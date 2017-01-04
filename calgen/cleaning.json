@@ -1,0 +1,74 @@
+[
+    {
+        "name": "Living Room", 
+        "sub": [
+            "Vaccum", 
+            "Mop", 
+            "Trash"
+        ]
+    }, 
+    {
+        "name": "Hallway", 
+        "sub": [
+            "Vaccum", 
+            "Trash"
+        ]
+    }, 
+    {
+        "name": "Kitchen", 
+        "sub": [
+            "Vaccum", 
+            "Mop", 
+            "Counter"
+        ]
+    }, 
+    {
+        "name": "Bathroom", 
+        "sub": [
+            "Vaccum", 
+            "Mop", 
+            "Sink", 
+            "Bath", 
+            "Trash"
+        ]
+    }, 
+    {
+        "name": "Toilet", 
+        "sub": [
+            "Vaccum", 
+            "Mop", 
+            "Toilet", 
+            "Trash"
+        ]
+    }, 
+    {
+        "name": "Balcony", 
+        "sub": [
+            "cleaning"
+        ]
+    }, 
+    {
+        "name": "Study", 
+        "sub": [
+            "Vaccum", 
+            "Mop"
+        ]
+    }, 
+    {
+        "name": "", 
+        "sub": [
+            "Cooking", 
+            "Groceries", 
+            "Dish washer", 
+            "Wash machine"
+        ]
+    }, 
+    {
+        "name": "", 
+        "sub": [
+            "Exercise", 
+            "Squash", 
+            ""
+        ]
+    }
+]
