@@ -46,16 +46,19 @@ Example Output:
 
 This script generates a checklist calendar for any month. 
 
-     Usage: calgen.py [options]
+    Usage: calgen.py [options]
 
-     Options:
-       -h, --help            show this help message and exit
-       -s, --sample          generates sample json config
-       -m MONTH, --month=MONTH
-       -y YEAR, --year=YEAR  
-       -t TITLE, --title=TITLE
-       -i INPUT, --input=INPUT
-       -o OUTPUT, --output=OUTPUT
+    Options:
+      -h, --help              show this help message and exit
+      -d DAY, --day=DAY       optional start day or "today"
+      -m MONTH, --month=MONTH
+      -y YEAR, --year=YEAR  
+      -D DAYS, --days=DAYS  
+      -M MONTHS, --months=MONTHS
+      -t TITLE, --title=TITLE
+      -i INPUT, --input=INPUT
+      -o OUTPUT, --output=OUTPUT
+      -s, --sample            generates sample json config
        
 Generate Sample Config:
 
@@ -64,6 +67,8 @@ Generate Sample Config:
 Example Usage:
 
      ~$ calgen.py -i sample.json -t "title" -m 1 -y 2017 -o sample.html
+
+     ~$ calgen.py -i sample.json -t "title" -d today -M 2 -o sample.html
 
 ## requirements
 

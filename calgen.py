@@ -5,12 +5,19 @@ import sys
 
 from optparse import OptionParser
 parser = OptionParser()
+
+# indicate start date and days
+parser.add_option("-d", "--day", dest="day", default=1)
 parser.add_option("-m", "--month", dest="month")
 parser.add_option("-y", "--year", dest="year")
+parser.add_option("-D", "--days", dest="days")
+parser.add_option("-M", "--months", dest="months")
+
 parser.add_option("-t", "--title", dest="title")
 parser.add_option("-i", "--input", dest="input")
 parser.add_option("-o", "--output", dest="output")
 parser.add_option("-s", "--sample", dest="sample", default=False, action="store_true")
+
 kwargs, inputs = parser.parse_args()
 
 if kwargs.sample:
@@ -40,19 +47,78 @@ if kwargs.output:
 if not kwargs.title:
 	parser.error("--title | -t : title is required")
 
-if not kwargs.month:
-	parser.error("--month | -m : month is required (January:1; December:12)")
-
-if not kwargs.year:
-	parser.error("--year | -y : year is required (eg: 2016)")
-
-
-
+# either today or exact start date
 try:
 	year = int(kwargs.year)
 	month = int(kwargs.month)
+	day = int(kwargs.day)
 except:
-	parser.error("Invalid month or year passed")
+	if kwargs.day == "today":
+		d = datetime.date.today()
+		day, month, year = d.day, d.month, d.year
+	else:
+
+		if not kwargs.month:
+			parser.error("--month | -m : month is required (January:1; December:12)")
+
+		if not kwargs.year:
+			parser.error("--year | -y : year is required (eg: 2016)")
+
+		parser.error("Invalid month or year passed")
+
+
+# default start is beginning of month
+yyyymmdd_start = datetime.date(year,month,day)
+
+nmonths = 1
+
+# either end of month or end of next month
+if kwargs.months:
+	try:
+		# default is 1 month
+		nmonths = int(kwargs.months)
+		print "nomont", nmonths
+	except:
+		nmonths = 1
+
+# end of this month
+if nmonths == 1:
+	# default end is end of month
+	yyyymmdd_end = datetime.date(year,month,1) + datetime.timedelta(calendar.monthrange(year,month)[1])
+else:
+	daysIdx = 0
+	nMonthsChanged = 0
+	currentMonth = yyyymmdd_start.month
+
+	# Loop until number of months change
+	while True:
+		thedate = yyyymmdd_start + datetime.timedelta(daysIdx)
+		if thedate.month != currentMonth:
+			currentMonth = thedate.month
+			nMonthsChanged += 1
+
+		if nMonthsChanged >= nmonths:
+			break
+
+		daysIdx += 1
+
+	yyyymmdd_end = thedate
+
+
+# unless specified
+if kwargs.days:
+	try:
+		ndays = int(kwargs.days)
+	except:
+		parser.error("--days | -n : Number of days need to be specified")
+
+	yyyymmdd_end = yyyymmdd_start + datetime.timedelta(ndays)
+
+	
+print yyyymmdd_start
+print yyyymmdd_end
+
+# sys.exit(-1)
 
 if kwargs.input:
 	try:
@@ -61,6 +127,10 @@ if kwargs.input:
 		fh.close()
 	except Exception, e:
 		parser.error("error loading json from input file." + str(e))
+
+
+
+
 
 class Day(object):
 	def __init__(self, yyyymmdd):
@@ -73,18 +143,20 @@ class Day(object):
 		self.isWeekday = self.dateobj.weekday() < 5
 		self.name = calendar.day_abbr[ self.dateobj.weekday() ][:2]
 		self.day = yyyymmdd[2]
+		self.month = yyyymmdd[1]
 
 
-
-yyyymmdd_start = (year,month,1)
 days = []
 daysIdx = 0
+
+
 while True:
-	thedate = datetime.date(*yyyymmdd_start) + datetime.timedelta(daysIdx)
-	if thedate.month != yyyymmdd_start[1]:
+	thedate = yyyymmdd_start + datetime.timedelta(daysIdx)
+	if thedate >= yyyymmdd_end:
 		break
 	days.append( Day(thedate) )
 	daysIdx+=1
+
 
 thehtml = ''
 def html(h):
@@ -112,9 +184,30 @@ def td(c='', attrs={}):
 
 html('<table border=0>')
 
+
+# print the month names
+tr_start()
+
+td( "", {"colspan":2, "class":"thetitle"} )
+currmonth = days[0].month
+monthspanlist = [ currmonth ]
+monthspans = [ 0 ]
+for day in days:
+	if day.month != currmonth:
+		monthspans.append(0)
+		monthspanlist.append(day.month)
+		currmonth = day.month
+
+	monthspans[-1] += 1
+
+for m, s in zip(monthspanlist,monthspans):
+	td(calendar.month_name[ m ], {"colspan": s, "class":"dateitem" })
+tr_end()
+
+
 # print the day of the month names
 tr_start()
-h = "%s (%s)" % (kwargs.title, calendar.month_name[ yyyymmdd_start[1] ])
+h = "%s" % (kwargs.title)
 
 td( h, {"colspan":2, "class":"thetitle"} )
 for day in days:
@@ -160,7 +253,13 @@ for eachCategory in categories:
 		tr_end()
 
 	tr_start()
-	td('&nbsp;', {"colspan":50, "class":"rowspacer"})
+	# td('&nbsp;', {"colspan":50, "class":"rowspacer"})
+	td('&nbsp;', {"colspan":2, "class":"rowspacer"})
+
+
+	for s in monthspans:
+		td("&nbsp;", {"colspan": s, "class":"dateitem" })
+
 	tr_end()
 
 
