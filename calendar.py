@@ -14,31 +14,10 @@ parser.add_option("-D", "--days", dest="days")
 parser.add_option("-M", "--months", dest="months")
 
 parser.add_option("-t", "--title", dest="title")
-parser.add_option("-i", "--input", dest="input")
 parser.add_option("-o", "--output", dest="output")
 parser.add_option("-s", "--sample", dest="sample", default=False, action="store_true")
 
 kwargs, inputs = parser.parse_args()
-
-if kwargs.sample:
-    s = []
-    for i in range(3):
-        grp = {
-                "name" : "Group Name %d" % i,
-                "sub" : []
-                }
-        for j in range(8):
-            grp["sub"].append( "Sub-item %d" % j )
-        s.append( grp )
-
-    fh = open("sample.json", "w+")
-    fh.write( json.dumps( s, indent=4 ) )
-    fh.close()
-    print "Generated sample.json"
-    sys.exit(0)
-
-if not kwargs.input:
-	parser.error("--input | -i : input JSON file is required")
 
 if kwargs.output:
     if not kwargs.output.endswith(".html"):
@@ -120,15 +99,6 @@ print yyyymmdd_end
 
 # sys.exit(-1)
 
-if kwargs.input:
-	try:
-		fh = open(kwargs.input,'r')
-		categories = json.load(fh)
-		fh.close()
-	except Exception, e:
-		parser.error("error loading json from input file." + str(e))
-
-
 
 
 
@@ -144,18 +114,59 @@ class Day(object):
 		self.name = calendar.day_abbr[ self.dateobj.weekday() ][:2]
 		self.day = yyyymmdd[2]
 		self.month = yyyymmdd[1]
+		self.counted = True
+
+	def __str__(self):
+		return str(self.yyyymmdd)
+	def __repr__(self):
+		return str(self.yyyymmdd)
+
+
+# We want to print calendar from Monday
+# so if month starts midweek, we want to show previous days
+
+WeekStart = 0 # Monday
+WeekEnd = 6
+deltaDays = 0
+while (yyyymmdd_start - datetime.timedelta(deltaDays)).weekday() > 0:
+	deltaDays += 1
+
+yyyymmdd_actual_start = yyyymmdd_start - datetime.timedelta(deltaDays)
+print yyyymmdd_actual_start
+
+# same for month end - we want calendar until sunday
+
+
+deltaDays = 0
+while (yyyymmdd_end + datetime.timedelta(deltaDays)).weekday() < 6:
+	deltaDays += 1
+yyyymmdd_actual_end = yyyymmdd_end + datetime.timedelta(deltaDays)
+print yyyymmdd_actual_end
+
 
 
 days = []
 daysIdx = 0
-
-
 while True:
-	thedate = yyyymmdd_start + datetime.timedelta(daysIdx)
-	if thedate >= yyyymmdd_end:
+	thedate = yyyymmdd_actual_start + datetime.timedelta(daysIdx)
+	if thedate > yyyymmdd_actual_end:
 		break
-	days.append( Day(thedate) )
+	d = Day(thedate)
+	if thedate < yyyymmdd_start:
+		d.counted = False
+	if thedate >= yyyymmdd_end:
+		d.counted = False
+
+	days.append( d )
 	daysIdx+=1
+
+
+# First week
+daysIdx = 0
+firstWeek = days[:7]
+
+print firstWeek
+# sys.exit(-1)
 
 
 thehtml = ''
@@ -185,82 +196,46 @@ def td(c='', attrs={}):
 html('<table border=0>')
 
 
-# print the month names
+# print the day names
 tr_start()
-
-td( "", {"colspan":2, "class":"thetitle"} )
-currmonth = days[0].month
-monthspanlist = [ currmonth ]
-monthspans = [ 0 ]
-for day in days:
-	if day.month != currmonth:
-		monthspans.append(0)
-		monthspanlist.append(day.month)
-		currmonth = day.month
-
-	monthspans[-1] += 1
-
-for m, s in zip(monthspanlist,monthspans):
-	td(calendar.month_name[ m ], {"colspan": s, "class":"dateitem" })
+# td( "" )
+for i in firstWeek:
+	td( calendar.day_abbr[i.dateobj.weekday()], attrs={'class':'weekname'} )
 tr_end()
 
 
-# print the day of the month names
-tr_start()
-h = "%s" % (kwargs.title)
 
-td( h, {"colspan":2, "class":"thetitle"} )
-for day in days:
-	c = ['dateitem']
-	if day.isWeekend:
-		c.append('d_weekend')
-	td(day.name, {"class":c})
-tr_end()
+# print calendar
 
-# print the day of the month numbers
-tr_start()
-td( '', {"colspan":2, "class":"thetitle"} )
-for day in days:
-	c = ['dateitem']
-	if day.isWeekend:
-		c.append('d_weekend')
-	td(day.day, {"class":c})
-tr_end()
-
-
-# print all crap
-for eachCategory in categories:
-	
-	nSubs = len(eachCategory["sub"])
-	for cIdx in range(nSubs):
+for d in days:
+	if d.dateobj.weekday() == WeekStart:
 		tr_start()
-		# generate the category header on  the left
-		if cIdx == 0:
-				td(eachCategory['name'], {"rowspan":nSubs, "class":"catitem", "valign":"top"})
 
-		eachSub = eachCategory['sub'][cIdx]
+	classes = ['aday']
+	if d.isWeekend:
+		classes.append('weekend')
+	if d.counted:
+		classes.append('counted')
+	else:
+		classes.append('notcounted')
 
-		# then stuff in sub-category name
-		td(eachSub, {"class":"subitem"})
 
-		# date range
-		for day in days:
-			c = ['dateitem']
-			if day.isWeekend:
-				c.append('d_weekend')
-			td('&nbsp;', {"class":c})
+	label = ""
+	if d.day == 1 or d == days[0]:
+		label += "<div style='float:left' class='monthname'>" + calendar.month_name[d.month] + "</div>"
 
+		classes.append('monthname')
+
+	label += str(d.day)
+
+
+
+	td(label, attrs={'width':'100%', 'class':classes})
+
+
+	if d.dateobj.weekday() == WeekEnd:
 		tr_end()
 
-	tr_start()
-	# td('&nbsp;', {"colspan":50, "class":"rowspacer"})
-	td('&nbsp;', {"colspan":2, "class":"rowspacer"})
-
-
-	for s in monthspans:
-		td("&nbsp;", {"colspan": s, "class":"dateitem" })
-
-	tr_end()
 
 
 
@@ -268,33 +243,64 @@ html('</table>')
 
 html("""
 <style type="text/css">
-.dateitem {
-	width:25px;
-	border:1px solid black;
-	text-align:center;
-}
-.catitem {
-	text-align:right;
-	width:80px;
-}
-.subitem {
-	border:1px solid black;
-	text-align:right;
-	width:220px;
-}
+
 table {
 	border-collapse:collapse;
 	border:0;
+	width:100%;
+	height:100%;
+	table-layout:fixed;
 }
 .d_weekend {
 	background:#ccc;
+
 }
+
 td {
 	padding:2px 3px;
+	border:1px solid #bbb;
+	font-family:"Helvetica Neue";
+	
+}
+
+div.monthname {
+	font-size:20px;
+	margin-left:10px;
+}
+td.monthname {
+	font-weight:normal !important;
+}
+
+td.aday {
+	vertical-align:top;
+	text-align:right;
+	padding-right:10px;
+	padding-top:10px;
+	font-size:20px;
+	font-weight:lighter;
+	color:#333;
+}
+td.notcounted {
+	background-color:#ccc !important;
+}
+td.weekname {
+	vertical-align:middle;
+	text-align:center;
+	font-size:20px;
+	font-weight:lighter;
+	border:0;
+	height:50px;
+}
+td.counted {
+	color:#000;
+	background-color:#fff;
+}
+td.weekend {
+	background-color:#f0f0f0;
 }
 body * {
 	font-size: 12px;
-	font-family:"Arial"
+	font-family:"Helvetica Neue"
 }
 .thetitle {
 	text-align:left;
@@ -307,7 +313,7 @@ body * {
 </style>
 """)
 
-fn = kwargs.input.replace(".json", ".html")
+fn = "output.html"
 
 if kwargs.output:
     fn = kwargs.output
