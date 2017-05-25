@@ -207,7 +207,9 @@ tr_end()
 
 # print calendar
 
+idx = 0
 for d in days:
+
 	if d.dateobj.weekday() == WeekStart:
 		tr_start()
 
@@ -218,6 +220,13 @@ for d in days:
 		classes.append('counted')
 	else:
 		classes.append('notcounted')
+
+	if idx + 1 < len(days):
+		if days[idx].month != days[idx+1].month:
+			classes.append('border-right')
+	if idx + 7 < len(days):
+		if days[idx].month != days[idx+7].month:
+			classes.append('border-bottom')
 
 
 	label = ""
@@ -235,6 +244,8 @@ for d in days:
 
 	if d.dateobj.weekday() == WeekEnd:
 		tr_end()
+
+	idx += 1
 
 
 
@@ -297,6 +308,12 @@ td.counted {
 }
 td.weekend {
 	background-color:#f0f0f0;
+}
+td.border-right {
+	border-right:2px solid #aaa !important;
+}
+td.border-bottom {
+	border-bottom:2px solid #aaa !important;
 }
 body * {
 	font-size: 12px;
