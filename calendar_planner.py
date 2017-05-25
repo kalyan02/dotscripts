@@ -221,6 +221,14 @@ for d in days:
 	else:
 		classes.append('notcounted')
 
+	if idx < 7:
+		classes.append('border-top')
+	if idx >= len(days)-7:
+		classes.append('border-bottom')
+	if days[idx].dateobj.weekday() == WeekEnd:
+			classes.append('border-right')
+	if days[idx].dateobj.weekday() == WeekStart:
+			classes.append('border-left')
 	if idx + 1 < len(days):
 		if days[idx].month != days[idx+1].month:
 			classes.append('border-right')
@@ -292,7 +300,7 @@ td.aday {
 	color:#333;
 }
 td.notcounted {
-	background-color:#ccc !important;
+	/* background-color:#ccc !important; */
 }
 td.weekname {
 	vertical-align:middle;
@@ -310,10 +318,16 @@ td.weekend {
 	background-color:#f0f0f0;
 }
 td.border-right {
-	border-right:2px solid #aaa !important;
+	border-right:2px solid #000 !important;
 }
 td.border-bottom {
-	border-bottom:2px solid #aaa !important;
+	border-bottom:2px solid #000 !important;
+}
+td.border-left {
+	border-left:2px solid #000 !important;
+}
+td.border-top {
+	border-top:2px solid #000 !important;
 }
 body * {
 	font-size: 12px;
